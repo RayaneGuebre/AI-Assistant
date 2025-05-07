@@ -1,6 +1,6 @@
-AI-Assistant
+# AI-Assistant
 
-I'm tired of managing my calendar, emails, and daily tasks manually, and of limited assistants like Alexa. That’s why I want to build my own AI voice assistant, inspired by iron man's Jarvis, i want to create a voice assistant that's smart and that can help me with all my everyday tasks
+I'm tired of managing my calendar, emails, and daily tasks manually, and of limited assistants like Alexa. That’s why I want to build my own AI voice assistant, inspired by Iron Man's Jarvis, I want to create a smart voice assistant that can help me with all my everyday tasks and more
 
 # Features (Planned and In Progress)
 
@@ -10,7 +10,7 @@ I'm tired of managing my calendar, emails, and daily tasks manually, and of limi
 
 - Connect to robots (like one that can bring me tools — still in progress)
 
-- Use ChatGPT (or similar models) for smart, contextual responses
+- Use Chatgpt (or similar models) for smart, contextual responses
 
 - Integrate with Telegram so I can interact with it from my phone
 
