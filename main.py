@@ -1,11 +1,16 @@
+# ChaptGPT
 from openai import OpenAI
 
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
-from telegram import Update
+import threading 
+#Telegram
+import telebot
 
+#Environmental variables
 import os
 from os.path import join, dirname
 from dotenv import load_dotenv
+
+#Misc
 import whisper
 import requests
 
@@ -14,9 +19,9 @@ import requests
 dotenv_path = join(dirname(__file__), ".env")
 load_dotenv(dotenv_path)
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-TELEGRAM_KEY = os.environ.get("TELEGRAM_BOT_KEY")
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_KEY")
 TELEGRAM_ID = os.environ.get("TELEGRAM_ID")
-bot = telegram.Bot(token=TELEGRAM_KEY)
+bot = telebot.TeleBot(TELEGRAM_TOKEN)
 client = OpenAI(
     api_key = OPENAI_API_KEY,
 )
@@ -30,7 +35,8 @@ client = OpenAI(
 # GPT integration
 
 
-sent_with_telegram = True
+
+sent_with_telegram = False
 def chat_with_gpt(prompt):
 
     headers = {
@@ -49,21 +55,25 @@ def chat_with_gpt(prompt):
     data = response.json()
     return data["choices"][0]["message"]["content"]
 def main():
-    application = ApplicationBuilder().token(TELEGRAM_KEY).build()
     
-    async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text("Hello! I'm your assistant.")
         
+    @bot.message_handler(func=lambda message: True)
+    def to_gpt(message):
+        output = chat_with_gpt(message.text)
+        print(output)
+        bot.reply_to(message, output)
+ 
+    
     while True:
         user_input = input("You: ")
-            
         if user_input.lower() in ["bye", "exit", "quit"]:
             break
         response = chat_with_gpt(user_input)
-        if sent_with_telegram:
-            telegram.Chat.send_message(TELEGRAM_ID, response)
-        else: 
-                print(f"Jarvis: {response}")
+        print(f"Jarvis: {response}")
+    
+        
 
 if __name__ == "__main__":
+    threading.Thread(target=bot.infinity_polling, daemon=True).start()
     main()  
+    
