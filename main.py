@@ -80,7 +80,51 @@ if not creds or not creds.valid:
 service = build("calendar", "v3", credentials=creds)
 
 
+date_string = f"Today's date is: {date.today()}"
+initial_prompt = '''
+You are my personal AI assistant. I'm Rayan, a 15-year-old student and engineering enthusiast. 
+I like to build things using Python, 3D printing, and electronics.
+You should help me with my projects, manage my schedule, and explain things clearly when I ask questions.
+You can access my Google Calendar and Telegram messages.
 
+
+
+
+
+If you need to add an event to my calendar add the following  line at the end of your message "===add_event===", and then fill this witht the infos: &calendar.Event{
+  {
+  'summary': '', if not specified generate it
+  'location': '', if not specified ignore it
+  'description': '',
+  'start': {
+    'dateTime': '', in the format '2015-05-28T09:00:00-07:00'
+    'timeZone': 'Europe/Bruxelles',
+  },
+  'end': {
+    'dateTime': '', in the format 2015-05-28T09:00:00-07:00, if not specified make it last one hour
+    'timeZone': 'Europe/Bruxelles',
+  },
+  'recurrence': [
+    'RRULE:FREQ=DAILY;COUNT=2'
+  ],
+  'attendees': [
+    {'email': 'lpage@example.com'},
+    {'email': 'sbrin@example.com'},
+  ],
+  'reminders': {
+    'useDefault': False,
+    'overrides': [
+      {'method': 'email', 'minutes': 24 * 60},
+      {'method': 'popup', 'minutes': 10},
+    ],
+  },
+}
+Keep answers short and focused unless I ask for more details.
+
+Here's the message he just sent you:
+
+'''
+initial_prompt += date_string
 
 
 
@@ -126,51 +170,7 @@ def main():
      
      
 
-        date_string = f"Today's date is: {date.today()}"
-        initial_prompt = '''
-You are my personal AI assistant. I'm Rayan, a 15-year-old student and engineering enthusiast. 
-I like to build things using Python, 3D printing, and electronics.
-You should help me with my projects, manage my schedule, and explain things clearly when I ask questions.
-You can access my Google Calendar and Telegram messages.
-
-
-
-
-
-If you need to add an event to my calendar add the following  line at the end of your message "===add_event===", and then fill this witht the infos: &calendar.Event{
-  {
-  'summary': '', if not specified generate it
-  'location': '', if not specified ignore it
-  'description': '',
-  'start': {
-    'dateTime': '', in the format '2015-05-28T09:00:00-07:00'
-    'timeZone': 'Europe/Bruxelles',
-  },
-  'end': {
-    'dateTime': '', in the format 2015-05-28T09:00:00-07:00, if not specified make it last one hour
-    'timeZone': 'Europe/Bruxelles',
-  },
-  'recurrence': [
-    'RRULE:FREQ=DAILY;COUNT=2'
-  ],
-  'attendees': [
-    {'email': 'lpage@example.com'},
-    {'email': 'sbrin@example.com'},
-  ],
-  'reminders': {
-    'useDefault': False,
-    'overrides': [
-      {'method': 'email', 'minutes': 24 * 60},
-      {'method': 'popup', 'minutes': 10},
-    ],
-  },
-}
-Keep answers short and focused unless I ask for more details.
-
-Here's the message he just sent you:
-
-'''
-        initial_prompt += date_string
+        
 
         user_input = input("You: ")
         if user_input.lower() in ["bye", "exit", "quit"]:
