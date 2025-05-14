@@ -13,10 +13,12 @@ from dotenv import load_dotenv
 #Misc
 import whisper
 import requests
+import json
 
 #Calendar
-import datetime 
-from datetime import date
+
+from datetime import date, time, datetime
+import time
 import os.path
 
 from google.auth.transport.requests import Request
@@ -80,29 +82,38 @@ if not creds or not creds.valid:
 service = build("calendar", "v3", credentials=creds)
 
 
-date_string = f"Today's date is: {date.today()}"
+date_string = f"Today's date is: {date.today()} and time: {datetime.now()}"
 initial_prompt = '''
 You are my personal AI assistant. I'm Rayan, a 15-year-old student and engineering enthusiast. 
 I like to build things using Python, 3D printing, and electronics.
 You should help me with my projects, manage my schedule, and explain things clearly when I ask questions.
 You can access my Google Calendar and Telegram messages.
 
+to work with third party app you need to use commands
+
+to separate the command from the message add "===commands===" at the end of the message.
 
 
 
 
-If you need to add an event to my calendar add the following  line at the end of your message "===add_event===", and then fill this witht the infos: &calendar.Event{
+
+Keep answers short and focused unless I ask for more details.
+
+
+
+
+If i specificaly ask you to add an event to my calendar add the following  line after your message: "===" and under it "add_event", and then fill this witht the infos: 
   {
   'summary': '', if not specified generate it
-  'location': '', if not specified ignore it
+  'location': '', if not specified generate it
   'description': '',
   'start': {
     'dateTime': '', in the format '2015-05-28T09:00:00-07:00'
     'timeZone': 'Europe/Bruxelles',
   },
   'end': {
-    'dateTime': '', in the format 2015-05-28T09:00:00-07:00, if not specified make it last one hour
-    'timeZone': 'Europe/Bruxelles',
+    'dateTime': '', in the format 2015-05-28T09:00:00-07:00, if not specified make it last one hour,
+    'timeZone': 'Europe/Bruxelles'
   },
   'recurrence': [
     'RRULE:FREQ=DAILY;COUNT=2'
@@ -119,9 +130,25 @@ If you need to add an event to my calendar add the following  line at the end of
     ],
   },
 }
-Keep answers short and focused unless I ask for more details.
 
-Here's the message he just sent you:
+if i didn't ask you don't add it
+if i didn't specified the time add it to the memory, and add it later when i'll have specified the time
+remember first "===commands===" and then the command
+
+to add something to the memory use the command "add_memory"
+
+remeber that your message structure needs to be like:
+
+"your message"
+===commands===
+add_event
+the json 
+===
+add_memory
+what you need to remember
+===
+and then write what you should remember
+Here's the message i just sent you:
 
 '''
 initial_prompt += date_string
@@ -155,10 +182,25 @@ def main():
             print(f"Ignored message from unauthorized user: {message.from_user.id}")
             return
         output = chat_with_gpt(message.text)
-        if "===add_event===" in output:
-            finished_output = output.split("===add_event===")[0]
-            command = output.split("===add_event===")[1]
-            bot.reply_to(message, command)
+        if "===commands===" in output:
+            finished_output = output.split("===commands===")[0]
+            commands = output.split("===commands===")[1]
+            commands = commands.split("===")
+            for command in commands:
+                if "add_event" in command:
+                    command = command.replace("add_event", "")
+                    print(command)
+                    command = json.dumps(command)
+                    event = service.events().insert(calendarId='95746b9ff028195c12a3754a5b52ccc3ed800951daf60f999413096bcff5aeb7@group.calendar.google.com', body=command).execute()
+                    print("event added succesfully")
+                if "add_memory" in command:
+                    command.replace("add_memory", "")
+                    
+                    with open(memory.txt, "a") as memory:
+                        memory.write(command)
+                
+
+
         print(output)
         bot.reply_to(message, finished_output)
         
@@ -176,13 +218,26 @@ def main():
         if user_input.lower() in ["bye", "exit", "quit"]:
             break
         output = chat_with_gpt(user_input)
-        if "===add_event===" in output:
-            response = output.split("===add_event===")[0]
-            command = output.split("===add_event===")[1]
+        
+        if "===commands===" in output:
+            finished_output = output.split("===add_event===")[0]
+            commands = output.split("===add_event===")[1]
+            commands = commands.split("===")
+            for command in commands:
+                if "add_event" in command:
+                    command.replace("add_event", "")
+                    event = service.events().insert(calendarId='95746b9ff028195c12a3754a5b52ccc3ed800951daf60f999413096bcff5aeb7@group.calendar.google.com', body=json.loads(command)).execute()
+                    print("event added succesfully")
+                if "add_memory" in command:
+                    command.replace("add_memory", "")
+                    
+                    with open(memory.txt, "a") as memory:
+                        memory.write(command)
         else:
             response = output
+        print(date.today())
         print(f"Jarvis: {response}")
-        print(command)
+   
         
 
 if __name__ == "__main__":
@@ -190,5 +245,3 @@ if __name__ == "__main__":
     main()  
 
     
-while True:
-    date = date.today()
